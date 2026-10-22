@@ -1,9 +1,5 @@
 # SEG3502 — Laboratoire 5 — Employee List
 
-## Authors
-
-- Andrianina Rakotobe(300428674)
-- Darcy-Joel Kabura(300432705)
 
 ## Installation
 
