@@ -1,10 +1,11 @@
 export const environment = {
   firebase: {
-    apiKey: '<your-api-key>',
-    authDomain: '<your-project-id>.firebaseapp.com',
-    projectId: '<your-project-id>',
-    storageBucket: '<your-project-id>.firebasestorage.app',
-    messagingSenderId: '<your-messaging-sender-id>',
-    appId: '<your-app-id>'
+    apiKey: "AIzaSyANJ5QxF7dqVSYLDza1tmbot0IyVk0Sm3I",
+    authDomain: "lab5-7fea4.firebaseapp.com",
+    projectId: "lab5-7fea4",
+    storageBucket: "lab5-7fea4.firebasestorage.app",
+    messagingSenderId: "221367367911",
+    appId: "1:221367367911:web:79401bc24f337478a74a42",
+    measurementId: "G-5CQ35WB7N0"
   }
 };

@@ -1,23 +1,50 @@
 import { Injectable, inject } from '@angular/core';
-import { BehaviorSubject, Observable } from 'rxjs';
-import { Firestore, addDoc, collection } from '@angular/fire/firestore';
+import { Observable, map, shareReplay } from 'rxjs';
+import {
+  CollectionReference,
+  DocumentData,
+  Firestore,
+  Timestamp,
+  addDoc,
+  collection,
+  collectionData
+} from '@angular/fire/firestore';
 import { Employee } from '../model/employee';
+
+/** Shape of an employee as it is stored in Firestore. */
+interface EmployeeDocument {
+  name: string;
+  dateOfBirth: Timestamp | Date | string;
+  city: string;
+  salary: number;
+  gender?: string;
+  email?: string;
+}
 
 @Injectable({
   providedIn: 'root'
 })
 export class EmployeeService {
   private firestore: Firestore = inject(Firestore);
-  private employees$: BehaviorSubject<readonly Employee[]> =
-    new BehaviorSubject<readonly Employee[]>([]);
+  private employees?: Observable<readonly Employee[]>;
 
   get $(): Observable<readonly Employee[]> {
-    return this.employees$;
+    // Built once and then shared: this getter runs on every change detection
+    // cycle, and returning a new observable each time would make AsyncPipe
+    // resubscribe — opening a new Firestore listener — over and over.
+    if (!this.employees) {
+      this.employees = collectionData(this.employeesCollection()).pipe(
+        map((documents: DocumentData[]) =>
+          documents.map((document) => this.toEmployee(<EmployeeDocument>document))
+        ),
+        shareReplay({ bufferSize: 1, refCount: true })
+      );
+    }
+
+    return this.employees;
   }
 
   async saveEmployee(employee: Employee): Promise<void> {
-    const employeesCollection = collection(this.firestore, 'employees');
-
     // Firestore expects a plain object rather than a custom class instance.
     const employeeData = {
       name: employee.name,
@@ -28,10 +55,34 @@ export class EmployeeService {
       email: employee.email ?? ''
     };
 
-    await addDoc(employeesCollection, employeeData);
+    await addDoc(this.employeesCollection(), employeeData);
 
-    // Keep the starter's current-session list working for now.
-    // Reading the list back from Firestore is intentionally left for part 2.
-    this.employees$.next([...this.employees$.getValue(), employee]);
+    // No local bookkeeping needed: collectionData() is a live listener, so the
+    // new document shows up in the list on its own.
+  }
+
+  private employeesCollection(): CollectionReference<DocumentData> {
+    return collection(this.firestore, 'employees');
+  }
+
+  private toEmployee(document: EmployeeDocument): Employee {
+    return new Employee(
+      document.name,
+      this.toDate(document.dateOfBirth),
+      document.city,
+      document.salary,
+      document.gender,
+      document.email
+    );
+  }
+
+  private toDate(value: Timestamp | Date | string): Date {
+    // A Date written to Firestore comes back as a Timestamp, which the
+    // DatePipe in the template cannot format on its own.
+    if (value instanceof Timestamp) {
+      return value.toDate();
+    }
+
+    return value instanceof Date ? value : new Date(value);
   }
 }

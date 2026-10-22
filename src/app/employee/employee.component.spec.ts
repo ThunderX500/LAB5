@@ -1,4 +1,6 @@
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
+import { Firestore } from '@angular/fire/firestore';
 
 import { EmployeeComponent } from './employee.component';
 
@@ -8,8 +10,9 @@ describe('EmployeeComponent', () => {
 
   beforeEach(() => {
     TestBed.configureTestingModule({
-    imports: [EmployeeComponent]
-});
+      imports: [EmployeeComponent],
+      providers: [provideRouter([]), { provide: Firestore, useValue: {} }]
+    });
     fixture = TestBed.createComponent(EmployeeComponent);
     component = fixture.componentInstance;
     fixture.detectChanges();
